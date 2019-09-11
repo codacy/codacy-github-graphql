@@ -1,6 +1,7 @@
 // Dependencies
+def scalaMajorMinorVersion = "2.12"
+def scalaVersion = (String) "${scalaMajorMinorVersion}.9"
 def jetbrainsVersion = "13.0"
-def scalaVersion = "2.12.9"
 
 group = 'com.codacy'
 version = System.getenv().getOrDefault('VERSION', '0.1.0-SNAPSHOT')
@@ -61,7 +62,7 @@ publishing {
     publications {
         maven(MavenPublication) {
             groupId = project.group
-            artifactId = project.name
+            artifactId = "${project.name}_${scalaMajorMinorVersion}"
             from components.java
             artifact sourcesJar
             artifact javadocJar

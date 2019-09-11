@@ -1,0 +1,41 @@
+version: 2.1
+
+orbs:
+  codacy: codacy/base@0.3.7
+
+workflows:
+  compile_test_deploy:
+    jobs:
+      - codacy/checkout_and_version
+      - codacy/shell:
+          name: build
+          context: CodacyAWS
+          cmd: ./gradlew build
+          requires:
+            - codacy/checkout_and_version
+          filters:
+            branches:
+              ignore:
+                - master
+      - codacy/shell:
+          name: build-and-publish
+          context: CodacyAWS
+          cmd: |
+            export VERSION="$(cat .version)"
+            ./gradlew build
+            ./gradlew publish
+          requires:
+            - codacy/checkout_and_version
+          filters:
+            branches:
+              only:
+                - master
+      - codacy/tag_version:
+          name: tag_version
+          context: CodacyAWS
+          requires:
+            - build-and-publish
+          filters:
+            branches:
+              only:
+                - master
