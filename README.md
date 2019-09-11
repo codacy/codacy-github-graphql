@@ -12,6 +12,44 @@ Library with Apollo compiled queries and models for GitHub API V4
 ./gradlew build
 ```
 
+## Usage
+
+Look for queries under package `com.github.api.v4._`
+and use `com.codacy.graphql.apollo.client.ScalaApolloClient` to get futures instead of callbacks from the ApolloClient.
+
+**Example**
+
+```scala
+import java.net.URL
+
+import com.github.api.v4.ListProjectMembershipsQuery
+import com.codacy.graphql.apollo.client.ScalaApolloClient
+
+import scala.collection.JavaConverters._
+import scala.compat.java8.OptionConverters._
+import scala.concurrent.duration._
+
+val client = ScalaApolloClient(new URL("https://api.example.com/graphql"))
+// val client = ScalaApolloClient(new URL("https://api.example.com/graphql"), okHttpClient)
+// val client = ScalaApolloClient(apolloClient)
+
+val queryMemberships = ListProjectMembershipsQuery
+  .builder()
+  .ownerName("codacy")
+  .repositoryName("codacy-eslint")
+  .build()
+val result = client.execute(queryMemberships)
+
+val data = result.map { res =>
+    for {
+      data <- res.data().asScala
+      repositoryEntries <- data.repositoryEntries().asScala
+      collaborators <- repositoryEntries.collaborators().asScala
+      nodes <- collaborators.nodes().asScala.map(_.asScala)
+    } yield nodes.map(c => (c.databaseId().asScala, c.login(), Option(c.email()).filter(_.nonEmpty)))
+}
+```
+
 ## FAQ
 
 1. How to add a new query?
