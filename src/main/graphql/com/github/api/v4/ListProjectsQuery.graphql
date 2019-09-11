@@ -1,0 +1,26 @@
+query ListProjectsQuery($queryString: String!) {
+    rateLimit {
+        cost
+        remaining
+        resetAt
+    }
+    search(query: $queryString, type: REPOSITORY, first: 10) {
+        nodes {
+            ... on Repository {
+                databaseId
+                owner {
+                    login
+                }
+                name
+                createdAt
+                description
+                viewerPermission
+            }
+        }
+        repositoryCount
+        pageInfo {
+            endCursor
+            startCursor
+        }
+    }
+}

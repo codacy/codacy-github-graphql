@@ -1,0 +1,11 @@
+query ListProjectMembershipsQuery($ownerName: String!, $repositoryName: String!) {
+    repositoryEntries: repository(owner: $ownerName, name: $repositoryName) {
+        collaborators {
+            nodes {
+                databaseId
+                login
+                email
+            }
+        }
+    }
+}

@@ -1,0 +1,174 @@
+// Dependencies
+def jetbrainsVersion = "13.0"
+def scalaVersion = "2.12.9"
+
+group = 'com.codacy'
+version = System.getenv().getOrDefault('VERSION', '0.1.0-SNAPSHOT')
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        def awsSdkVersion = "1.11.202"
+        classpath "com.apollographql.apollo:apollo-gradle-plugin:1.1.3" // TODO: Check if we can deduplicate this
+        classpath "com.amazonaws:aws-java-sdk-sts:${awsSdkVersion}"
+        classpath "com.amazonaws:aws-java-sdk-s3:${awsSdkVersion}"
+    }
+}
+
+apply plugin: 'java-library'
+apply plugin: 'scala'
+apply plugin: 'com.apollographql.android'
+
+apply plugin: 'maven-publish'
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compileOnly "org.jetbrains:annotations:${jetbrainsVersion}"
+    testCompileOnly "org.jetbrains:annotations:${jetbrainsVersion}"
+    implementation "org.scala-lang:scala-library:${scalaVersion}"
+    implementation "com.apollographql.apollo:apollo-runtime:1.1.3" // TODO: Check if we can deduplicate this
+}
+
+apollo {
+    customTypeMapping.putAt('DateTime', "java.time.Instant")
+    nullableValueType = "javaOptional"
+    useSemanticNaming = false
+    useJavaBeansSemanticNaming = false
+    generateVisitorForPolymorphicDatatypes = true
+    generateKotlinModels = false
+    suppressRawTypesWarning = true
+    sourceSet {
+        exclude = "**/schema.graphql"
+    }
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    archiveClassifier = 'sources'
+}
+
+task javadocJar(type: Jar) {
+    from javadoc
+    archiveClassifier = 'javadoc'
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = project.group
+            artifactId = project.name
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+            pom {
+                name = 'Codacy GitHub v4 GraphQL'
+                description = 'Generated models and queries for GitHub v4 API in GraphQL'
+                url = 'https://github.com/codacy/codacy-github-graphql'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'codacy'
+                        name = 'Codacy Team'
+                        email = 'code@codacy.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/codacy/codacy-github-graphql.git'
+                    developerConnection = 'scm:git:ssh://github.com:codacy/codacy-github-graphql.git'
+                    url = 'https://github.com/codacy/codacy-github-graphql'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            credentials {
+                username System.getenv().get("SONATYPE_USER")
+                password System.getenv().get("SONATYPE_PASSWORD")
+            }
+        }
+    }
+}
+
+javadoc {
+    if (JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
+}
+
+import com.amazonaws.auth.AWSStaticCredentialsProvider
+import com.amazonaws.auth.BasicAWSCredentials
+import com.amazonaws.auth.BasicSessionCredentials
+import com.amazonaws.regions.Regions
+import com.amazonaws.services.s3.AmazonS3ClientBuilder
+import com.amazonaws.services.s3.model.GetObjectRequest
+import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient
+import com.amazonaws.services.securitytoken.model.AssumeRoleRequest
+
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
+
+// TODO: Better way to do this?
+if (System.getenv().get("CI") == "true") {
+    apply plugin: 'signing'
+
+    signing {
+        sign publishing.publications.maven
+    }
+
+    gradle.taskGraph.whenReady { taskGraph ->
+        if (taskGraph.allTasks.any { it instanceof Sign }) {
+            def tmpDir = System.getProperty("java.io.tmpdir")
+            def accessKey = System.getenv().get("ACCESS_KEY_ID")
+            def secretKey = System.getenv().get("SECRET_ACCESS_KEY")
+            def bucket = System.getenv().getOrDefault("AWS_CREDENTIALS_BUCKET", "deploymentcredentials-bucket-3u382bs4xz3f-bucket-wey6w2omxw99")
+            def roleArn = System.getenv().getOrDefault("AWS_ACCOUNT_ID_SHARED_SERVICES", "382099064715")
+            def role = (String) "arn:aws:iam::${roleArn}:role/CredentialsBucketReader"
+
+            def credentials = new BasicAWSCredentials(accessKey, secretKey)
+            def stsClient = new AWSSecurityTokenServiceClient(credentials)
+            def assumeRequest = new AssumeRoleRequest()
+                    .withRoleArn(role)
+                    .withDurationSeconds(3600)
+                    .withRoleSessionName(UUID.randomUUID().toString())
+            def assumeResult = stsClient.assumeRole(assumeRequest)
+
+            def temporaryCredentials =
+                    new BasicSessionCredentials(
+                            assumeResult.getCredentials().getAccessKeyId(),
+                            assumeResult.getCredentials().getSecretAccessKey(),
+                            assumeResult.getCredentials().getSessionToken()
+                    )
+
+            def s3Client = AmazonS3ClientBuilder
+                    .standard()
+                    .withRegion(Regions.EU_WEST_1)
+                    .withCredentials(new AWSStaticCredentialsProvider(temporaryCredentials))
+                    .build()
+
+            def secringPath = (String) "${tmpDir}/secring.gpg"
+            def src = s3Client.getObject(new GetObjectRequest(bucket, "gnupg/secring.gpg"))
+            Files.copy(src.getObjectContent(), Paths.get(secringPath), StandardCopyOption.REPLACE_EXISTING)
+
+            allprojects {
+                ext."signing.keyId" = "2FA8A805" // gpg --keyid-format short /tmp/pubring.gpg
+                ext."signing.secretKeyRingFile" = secringPath
+                ext."signing.password" = System.getenv().get("SONATYPE_GPG_PASSPHRASE")
+            }
+        }
+    }
+}
