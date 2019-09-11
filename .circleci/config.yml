@@ -24,6 +24,8 @@ workflows:
             export VERSION="$(cat .version)"
             ./gradlew build
             ./gradlew publish
+            ./gradlew getStagingProfile
+            ./gradlew closeAndReleaseRepository
           requires:
             - codacy/checkout_and_version
           filters:
