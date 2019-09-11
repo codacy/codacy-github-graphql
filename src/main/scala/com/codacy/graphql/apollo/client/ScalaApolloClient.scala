@@ -12,13 +12,12 @@ import com.github.api.v4.`type`.CustomType
 import okhttp3.OkHttpClient
 
 import scala.concurrent.{Future, Promise}
-import scala.util.{Failure, Success}
 
-object ApolloClient {
-  def apply(url: URL, okHttpClient: OkHttpClient = new OkHttpClient.Builder().build()): ApolloClient =
-    new ApolloClient(client(url, okHttpClient))
+object ScalaApolloClient {
+  def apply(url: URL, okHttpClient: OkHttpClient = new OkHttpClient.Builder().build()): ScalaApolloClient =
+    new ScalaApolloClient(client(url, okHttpClient))
 
-  def apply(apolloClient: apollo.ApolloClient): ApolloClient = new ApolloClient(apolloClient)
+  def apply(apolloClient: apollo.ApolloClient): ScalaApolloClient = new ScalaApolloClient(apolloClient)
 
   private def client(url: URL, okHttpClient: OkHttpClient) = {
     apollo.ApolloClient.builder()
@@ -29,17 +28,17 @@ object ApolloClient {
   }
 }
 
-class ApolloClient(apolloClient: apollo.ApolloClient) {
+class ScalaApolloClient(val underlying: apollo.ApolloClient) {
 
   def execute[D <: Operation.Data, T, V <: Operation.Variables](query: Query[D, T, V]): Future[Response[T]] = {
     val promise = Promise[Response[T]]()
-    apolloClient
+    underlying
       .query(query)
       .responseFetcher(ApolloResponseFetchers.NETWORK_ONLY)
       .enqueue(new ApolloCall.Callback[T]() {
-        override def onResponse(dataResponse: Response[T]): Unit = promise.complete(Success(dataResponse))
+        override def onResponse(dataResponse: Response[T]): Unit = promise.trySuccess(dataResponse)
 
-        override def onFailure(e: ApolloException): Unit = promise.complete(Failure(e))
+        override def onFailure(e: ApolloException): Unit = promise.tryFailure(e)
       })
     promise.future
   }
