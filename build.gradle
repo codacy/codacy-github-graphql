@@ -1,6 +1,7 @@
 // Dependencies
-def scalaMajorMinorVersion = "2.12"
-def scalaVersion = (String) "${scalaMajorMinorVersion}.9"
+def scalaVersionParts = System.getenv().getOrDefault('SCALA_VERSION', '2.12.9').tokenize(".")
+def scalaMajorMinorVersion = (String) "${scalaVersionParts[0]}.${scalaVersionParts[1]}"
+def scalaVersion = (String) "${scalaMajorMinorVersion}.${scalaVersionParts[2]}"
 def jetbrainsVersion = "13.0"
 
 group = 'com.codacy'
