@@ -23,15 +23,9 @@ workflows:
           cmd: |
             export VERSION="$(cat .version)"
             # export SCALA_VERSION="2.12.9"
-            ./gradlew build
-            ./gradlew publishToSonatype
-            ./gradlew getStagingProfile
-            ./gradlew closeAndReleaseRepository
+            ./gradlew build publishToSonatype getStagingProfile closeAndReleaseRepository
             export SCALA_VERSION="2.11.12"
-            ./gradlew build
-            ./gradlew publishToSonatype
-            ./gradlew getStagingProfile
-            ./gradlew closeAndReleaseRepository
+            ./gradlew build publishToSonatype getStagingProfile closeAndReleaseRepository
           requires:
             - codacy/checkout_and_version
           filters:
