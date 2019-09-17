@@ -1,12 +1,3 @@
-// Dependencies
-def scalaVersionParts = System.getenv().getOrDefault('SCALA_VERSION', '2.12.9').tokenize(".")
-def scalaMajorMinorVersion = (String) "${scalaVersionParts[0]}.${scalaVersionParts[1]}"
-def scalaVersion = (String) "${scalaMajorMinorVersion}.${scalaVersionParts[2]}"
-def jetbrainsVersion = "13.0"
-
-group = 'com.codacy'
-version = System.getenv().getOrDefault('VERSION', '0.1.0-SNAPSHOT')
-
 buildscript {
     repositories {
         jcenter()
@@ -16,16 +7,26 @@ buildscript {
         classpath "com.apollographql.apollo:apollo-gradle-plugin:1.1.3" // TODO: Check if we can deduplicate this
         classpath "com.amazonaws:aws-java-sdk-sts:${awsSdkVersion}"
         classpath "com.amazonaws:aws-java-sdk-s3:${awsSdkVersion}"
-        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.21.1"
     }
 }
 
-apply plugin: 'java-library'
-apply plugin: 'scala'
+plugins {
+    id 'java-library'
+    id 'scala'
+    id 'maven-publish'
+    id 'de.marcphilipp.nexus-publish' version '0.3.1'
+    id 'io.codearte.nexus-staging' version '0.21.1'
+}
+
 apply plugin: 'com.apollographql.android'
 
-apply plugin: 'maven-publish'
-apply plugin: 'io.codearte.nexus-staging'
+def scalaVersionParts = System.getenv().getOrDefault('SCALA_VERSION', '2.12.9').tokenize(".")
+def scalaMajorMinorVersion = (String) "${scalaVersionParts[0]}.${scalaVersionParts[1]}"
+def scalaVersion = (String) "${scalaMajorMinorVersion}.${scalaVersionParts[2]}"
+def jetbrainsVersion = "13.0"
+
+group = 'com.codacy'
+version = System.getenv().getOrDefault('VERSION', '0.1.0-SNAPSHOT')
 
 repositories {
     jcenter()
@@ -91,17 +92,6 @@ publishing {
                     developerConnection = 'scm:git:ssh://github.com:codacy/codacy-github-graphql.git'
                     url = 'https://github.com/codacy/codacy-github-graphql'
                 }
-            }
-        }
-    }
-    repositories {
-        maven {
-            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
-            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-            credentials {
-                username System.getenv().get("SONATYPE_USER")
-                password System.getenv().get("SONATYPE_PASSWORD")
             }
         }
     }
@@ -173,6 +163,15 @@ if (System.getenv().get("CI") == "true") {
                 ext."signing.secretKeyRingFile" = secringPath
                 ext."signing.password" = System.getenv().get("SONATYPE_GPG_PASSPHRASE")
             }
+        }
+    }
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            username = System.getenv().get("SONATYPE_USER")
+            password = System.getenv().get("SONATYPE_PASSWORD")
         }
     }
 }
