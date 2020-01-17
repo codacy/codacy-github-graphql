@@ -1,10 +1,20 @@
-query ListProjectMembershipsQuery($ownerName: String!, $repositoryName: String!) {
+query ListProjectMembershipsQuery($ownerName: String!, $repositoryName: String!, $size: Int = 100, $page: String) {
+    rateLimit {
+        cost
+        remaining
+        resetAt
+    }
     repositoryEntries: repository(owner: $ownerName, name: $repositoryName) {
-        collaborators {
+        collaborators(first: $size, after: $page) {
             nodes {
                 databaseId
                 login
                 email
+            }
+            totalCount
+            pageInfo {
+                endCursor
+                startCursor
             }
         }
     }
