@@ -12,10 +12,13 @@ query ListProjectsQuery($queryString: String!, $size: Int = 100, $page: String) 
                     login
                 }
                 name
-                updatedAt
-                createdAt
+                url
+                sshUrl
+                isPrivate
                 description
                 viewerPermission
+                updatedAt
+                createdAt
             }
         }
         repositoryCount
