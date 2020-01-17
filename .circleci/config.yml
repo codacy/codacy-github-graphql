@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  codacy: codacy/base@0.3.7
+  codacy: codacy/base@2.1.0
 
 workflows:
   compile_test_deploy:
@@ -13,12 +13,18 @@ workflows:
           cmd: ./gradlew build
           requires:
             - codacy/checkout_and_version
+      - codacy/tag_version:
+          name: tag_version
+          context: CodacyAWS
+          requires:
+            - build
           filters:
             branches:
-              ignore:
+              only:
                 - master
+                - allow-pagination-list-memberships
       - codacy/shell:
-          name: build-and-publish
+          name: publish
           context: CodacyAWS
           cmd: |
             export VERSION="$(cat .version)"
@@ -27,17 +33,4 @@ workflows:
             export SCALA_VERSION="2.11.12"
             ./gradlew build publishToSonatype getStagingProfile closeAndReleaseRepository
           requires:
-            - codacy/checkout_and_version
-          filters:
-            branches:
-              only:
-                - master
-      - codacy/tag_version:
-          name: tag_version
-          context: CodacyAWS
-          requires:
-            - build-and-publish
-          filters:
-            branches:
-              only:
-                - master
+            - tag_version
