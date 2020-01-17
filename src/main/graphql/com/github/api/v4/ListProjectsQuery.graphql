@@ -1,10 +1,10 @@
-query ListProjectsQuery($queryString: String!) {
+query ListProjectsQuery($queryString: String!, $size: Int = 100, $page: String) {
     rateLimit {
         cost
         remaining
         resetAt
     }
-    search(query: $queryString, type: REPOSITORY, first: 10) {
+    search(query: $queryString, type: REPOSITORY, first: $size, after: $page) {
         nodes {
             ... on Repository {
                 databaseId
@@ -12,6 +12,7 @@ query ListProjectsQuery($queryString: String!) {
                     login
                 }
                 name
+                updatedAt
                 createdAt
                 description
                 viewerPermission
