@@ -179,4 +179,6 @@ nexusPublishing {
 nexusStaging {
     username = System.getenv().get("SONATYPE_USER")
     password = System.getenv().get("SONATYPE_PASSWORD")
+    numberOfRetries = 120
+    delayBetweenRetriesInMillis = 5000
 }
