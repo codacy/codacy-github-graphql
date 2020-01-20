@@ -179,4 +179,7 @@ nexusPublishing {
 nexusStaging {
     username = System.getenv().get("SONATYPE_USER")
     password = System.getenv().get("SONATYPE_PASSWORD")
+    // Increase number of retries and interval between them to avoid sonatype slowness afecting deployments
+    numberOfRetries = 120
+    delayBetweenRetriesInMillis = 5000
 }
