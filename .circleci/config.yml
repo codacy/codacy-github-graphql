@@ -49,7 +49,6 @@ workflows:
           context: CodacyAWS
           requires:
             - build-and-publish-2_12
-            - build-and-publish-2_11
           filters:
             branches:
               only:
