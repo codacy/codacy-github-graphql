@@ -17,8 +17,8 @@ public class DateTimeAdapter implements CustomTypeAdapter<Instant> {
 
     @NotNull
     @Override
-    public CustomTypeValue encode(@NotNull Instant value) {
-        return CustomTypeValue.fromRawValue(
+    public CustomTypeValue<String> encode(@NotNull Instant value) {
+        return new CustomTypeValue.GraphQLString(
                 DateTimeFormatter.ISO_DATE_TIME.format(value)
         );
     }
