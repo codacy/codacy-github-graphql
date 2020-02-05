@@ -3,8 +3,8 @@ buildscript {
         jcenter()
     }
     dependencies {
-        def awsSdkVersion = "1.11.202"
-        classpath "com.apollographql.apollo:apollo-gradle-plugin:1.1.3" // TODO: Check if we can deduplicate this
+        def awsSdkVersion = "1.11.714"
+        classpath "com.apollographql.apollo:apollo-gradle-plugin:1.3.0"
         classpath "com.amazonaws:aws-java-sdk-sts:${awsSdkVersion}"
         classpath "com.amazonaws:aws-java-sdk-s3:${awsSdkVersion}"
     }
@@ -14,16 +14,16 @@ plugins {
     id 'java-library'
     id 'scala'
     id 'maven-publish'
-    id 'de.marcphilipp.nexus-publish' version '0.3.1'
-    id 'io.codearte.nexus-staging' version '0.21.1'
+    id 'de.marcphilipp.nexus-publish' version '0.4.0'
+    id 'io.codearte.nexus-staging' version '0.21.2'
 }
 
-apply plugin: 'com.apollographql.android'
+apply plugin: 'com.apollographql.apollo'
 
-def scalaVersionParts = System.getenv().getOrDefault('SCALA_VERSION', '2.12.9').tokenize(".")
+def scalaVersionParts = System.getenv().getOrDefault('SCALA_VERSION', '2.12.10').tokenize(".")
 def scalaMajorMinorVersion = (String) "${scalaVersionParts[0]}.${scalaVersionParts[1]}"
 def scalaVersion = (String) "${scalaMajorMinorVersion}.${scalaVersionParts[2]}"
-def jetbrainsVersion = "13.0"
+def jetbrainsVersion = "18.0.0"
 
 group = 'com.codacy'
 version = System.getenv().getOrDefault('VERSION', '0.1.0-SNAPSHOT')
@@ -36,7 +36,7 @@ dependencies {
     compileOnly "org.jetbrains:annotations:${jetbrainsVersion}"
     testCompileOnly "org.jetbrains:annotations:${jetbrainsVersion}"
     implementation "org.scala-lang:scala-library:${scalaVersion}"
-    implementation "com.apollographql.apollo:apollo-runtime:1.1.3" // TODO: Check if we can deduplicate this
+    implementation "com.apollographql.apollo:apollo-runtime:1.3.0"
 }
 
 apollo {
@@ -47,8 +47,10 @@ apollo {
     generateVisitorForPolymorphicDatatypes = true
     generateKotlinModels = false
     suppressRawTypesWarning = true
-    sourceSet {
-        exclude = "**/schema.graphql"
+    service("github") {
+        sourceFolder.set("com/github/api/v4")
+        rootPackageName.set("com.github.api.v4")
+        exclude = ["**/schema.graphql"]
     }
 }
 
@@ -116,7 +118,6 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 
-// TODO: Better way to do this?
 if (System.getenv().get("CI") == "true") {
     apply plugin: 'signing'
 
