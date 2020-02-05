@@ -7,7 +7,7 @@ import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.{Operation, Query, Response}
 import com.apollographql.apollo.exception.ApolloException
 import com.apollographql.apollo.fetcher.ApolloResponseFetchers
-import com.codacy.graphql.adapter.DateTimeAdapter
+import com.codacy.graphql.adapter.{DateTimeAdapter, GitSshRemoteAdapter, IdAdapter, UriAdapter}
 import com.github.api.v4.`type`.CustomType
 import okhttp3.OkHttpClient
 
@@ -24,6 +24,9 @@ object ScalaApolloClient {
       .serverUrl(url.toString)
       .okHttpClient(okHttpClient)
       .addCustomTypeAdapter(CustomType.DATETIME, new DateTimeAdapter())
+      .addCustomTypeAdapter(CustomType.GITSSHREMOTE, new GitSshRemoteAdapter())
+      .addCustomTypeAdapter(CustomType.URI, new UriAdapter())
+      .addCustomTypeAdapter(CustomType.ID, new IdAdapter())
       .build()
   }
 }
