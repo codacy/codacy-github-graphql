@@ -2,9 +2,15 @@
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/75259e9537da4aa48e6744dff277f0e3)](https://www.codacy.com/manual/Codacy/codacy-github-graphql?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=codacy/codacy-github-graphql&amp;utm_campaign=Badge_Grade)
 [![CircleCI](https://circleci.com/gh/codacy/codacy-github-graphql.svg?style=svg)](https://circleci.com/gh/codacy/codacy-github-graphql)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.codacy/codacy-github-graphql_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.codacy/codacy-github-graphql_2.12)
+[![Download](https://api.bintray.com/packages/codacy/maven/codacy-github-graphql/images/download.svg)](https://bintray.com/codacy/maven/codacy-github-graphql/_latestVersion)
 
 Library with Apollo compiled queries and models for GitHub API V4
+
+## Use
+
+This package is published under bintray, you can check it out in https://bintray.com/codacy/maven/codacy-github-graphql.
+
+You need to add the resolver `https://dl.bintray.com/codacy/maven` to your project to use this library.
 
 ## Build
 
