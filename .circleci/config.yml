@@ -18,12 +18,12 @@ workflows:
               ignore:
                 - master
       - codacy/shell:
-          name: build-and-publish-2_11
-          context: CodacyAWS
+          name: build-and-publish-2_12
+          context: CodacyMavenPublish
           cmd: |
             export VERSION="$(cat .version)"
-            export SCALA_VERSION="2.11.12"
-            ./gradlew build publishToSonatype getStagingProfile closeAndReleaseRepository --stacktrace
+            # export SCALA_VERSION="2.12.10"
+            ./gradlew build bintrayUpload --stacktrace
           requires:
             - codacy/checkout_and_version
           filters:
@@ -31,15 +31,14 @@ workflows:
               only:
                 - master
       - codacy/shell:
-          name: build-and-publish-2_12
-          context: CodacyAWS
+          name: build-and-publish-2_11
+          context: CodacyMavenPublish
           cmd: |
             export VERSION="$(cat .version)"
-            # export SCALA_VERSION="2.12.9"
-            ./gradlew build publishToSonatype getStagingProfile closeAndReleaseRepository --stacktrace
+            export SCALA_VERSION="2.11.12"
+            ./gradlew build bintrayUpload --stacktrace
           requires:
             - codacy/checkout_and_version
-            - build-and-publish-2_11
           filters:
             branches:
               only:
@@ -49,7 +48,4 @@ workflows:
           context: CodacyAWS
           requires:
             - build-and-publish-2_12
-          filters:
-            branches:
-              only:
-                - master
+            - build-and-publish-2_11

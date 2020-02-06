@@ -3,8 +3,8 @@ buildscript {
         jcenter()
     }
     dependencies {
-        def awsSdkVersion = "1.11.202"
-        classpath "com.apollographql.apollo:apollo-gradle-plugin:1.1.3" // TODO: Check if we can deduplicate this
+        def awsSdkVersion = "1.11.714"
+        classpath "com.apollographql.apollo:apollo-gradle-plugin:1.3.0"
         classpath "com.amazonaws:aws-java-sdk-sts:${awsSdkVersion}"
         classpath "com.amazonaws:aws-java-sdk-s3:${awsSdkVersion}"
     }
@@ -14,16 +14,15 @@ plugins {
     id 'java-library'
     id 'scala'
     id 'maven-publish'
-    id 'de.marcphilipp.nexus-publish' version '0.3.1'
-    id 'io.codearte.nexus-staging' version '0.21.1'
+    id 'com.jfrog.bintray' version "1.8.4"
 }
 
-apply plugin: 'com.apollographql.android'
+apply plugin: 'com.apollographql.apollo'
 
-def scalaVersionParts = System.getenv().getOrDefault('SCALA_VERSION', '2.12.9').tokenize(".")
+def scalaVersionParts = System.getenv().getOrDefault('SCALA_VERSION', '2.12.10').tokenize(".")
 def scalaMajorMinorVersion = (String) "${scalaVersionParts[0]}.${scalaVersionParts[1]}"
 def scalaVersion = (String) "${scalaMajorMinorVersion}.${scalaVersionParts[2]}"
-def jetbrainsVersion = "13.0"
+def jetbrainsVersion = "18.0.0"
 
 group = 'com.codacy'
 version = System.getenv().getOrDefault('VERSION', '0.1.0-SNAPSHOT')
@@ -36,30 +35,37 @@ dependencies {
     compileOnly "org.jetbrains:annotations:${jetbrainsVersion}"
     testCompileOnly "org.jetbrains:annotations:${jetbrainsVersion}"
     implementation "org.scala-lang:scala-library:${scalaVersion}"
-    implementation "com.apollographql.apollo:apollo-runtime:1.1.3" // TODO: Check if we can deduplicate this
+    implementation "com.apollographql.apollo:apollo-runtime:1.3.0"
 }
 
 apollo {
-    customTypeMapping.putAt('DateTime', "java.time.Instant")
+    customTypeMapping = [
+            "DateTime"    : "java.time.Instant",
+            "URI"         : "java.lang.String",
+            "GitSSHRemote": "java.lang.String",
+            "ID"          : "java.lang.String"
+    ]
     nullableValueType = "javaOptional"
     useSemanticNaming = false
     useJavaBeansSemanticNaming = false
     generateVisitorForPolymorphicDatatypes = true
     generateKotlinModels = false
     suppressRawTypesWarning = true
-    sourceSet {
-        exclude = "**/schema.graphql"
+    service("github") {
+        sourceFolder.set("com/github/api/v4")
+        rootPackageName.set("com.github.api.v4")
+        exclude = ["**/schema.graphql"]
     }
 }
 
 task sourcesJar(type: Jar) {
     from sourceSets.main.allJava
-    archiveClassifier = 'sources'
+    archiveClassifier.set('sources')
 }
 
 task javadocJar(type: Jar) {
     from javadoc
-    archiveClassifier = 'javadoc'
+    archiveClassifier.set('javadoc')
 }
 
 publishing {
@@ -103,83 +109,35 @@ javadoc {
     }
 }
 
-import com.amazonaws.auth.AWSStaticCredentialsProvider
-import com.amazonaws.auth.BasicAWSCredentials
-import com.amazonaws.auth.BasicSessionCredentials
-import com.amazonaws.regions.Regions
-import com.amazonaws.services.s3.AmazonS3ClientBuilder
-import com.amazonaws.services.s3.model.GetObjectRequest
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient
-import com.amazonaws.services.securitytoken.model.AssumeRoleRequest
-
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
-
-// TODO: Better way to do this?
-if (System.getenv().get("CI") == "true") {
-    apply plugin: 'signing'
-
-    signing {
-        sign publishing.publications.maven
-    }
-
-    gradle.taskGraph.whenReady { taskGraph ->
-        if (taskGraph.allTasks.any { it instanceof Sign }) {
-            def tmpDir = System.getProperty("java.io.tmpdir")
-            def accessKey = System.getenv().get("ACCESS_KEY_ID")
-            def secretKey = System.getenv().get("SECRET_ACCESS_KEY")
-            def bucket = System.getenv().getOrDefault("AWS_CREDENTIALS_BUCKET", "deploymentcredentials-bucket-3u382bs4xz3f-bucket-wey6w2omxw99")
-            def roleArn = System.getenv().getOrDefault("AWS_ACCOUNT_ID_SHARED_SERVICES", "382099064715")
-            def role = (String) "arn:aws:iam::${roleArn}:role/CredentialsBucketReader"
-
-            def credentials = new BasicAWSCredentials(accessKey, secretKey)
-            def stsClient = new AWSSecurityTokenServiceClient(credentials)
-            def assumeRequest = new AssumeRoleRequest()
-                    .withRoleArn(role)
-                    .withDurationSeconds(3600)
-                    .withRoleSessionName(UUID.randomUUID().toString())
-            def assumeResult = stsClient.assumeRole(assumeRequest)
-
-            def temporaryCredentials =
-                    new BasicSessionCredentials(
-                            assumeResult.getCredentials().getAccessKeyId(),
-                            assumeResult.getCredentials().getSecretAccessKey(),
-                            assumeResult.getCredentials().getSessionToken()
-                    )
-
-            def s3Client = AmazonS3ClientBuilder
-                    .standard()
-                    .withRegion(Regions.EU_WEST_1)
-                    .withCredentials(new AWSStaticCredentialsProvider(temporaryCredentials))
-                    .build()
-
-            def secringPath = (String) "${tmpDir}/secring.gpg"
-            def src = s3Client.getObject(new GetObjectRequest(bucket, "gnupg/secring.gpg"))
-            Files.copy(src.getObjectContent(), Paths.get(secringPath), StandardCopyOption.REPLACE_EXISTING)
-
-            allprojects {
-                ext."signing.keyId" = "2FA8A805" // gpg --keyid-format short /tmp/pubring.gpg
-                ext."signing.secretKeyRingFile" = secringPath
-                ext."signing.password" = System.getenv().get("SONATYPE_GPG_PASSPHRASE")
+bintray {
+    user = 'codacy-ci'
+    key = System.getenv().get("BINTRAY_API_KEY")
+    publications = [publishing.publications.maven.name]
+    dryRun = false //[Default: false] Whether to run this as dry-run, without deploying
+    publish = true //[Default: false] Whether version should be auto published after an upload
+    override = false //[Default: false] Whether to override version artifacts already published
+    pkg {
+        repo = 'maven'
+        name = 'codacy-github-graphql'
+        userOrg = 'codacy'
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/codacy/codacy-github-graphql.git'
+        version {
+            name = project.version
+            desc = 'Release ' + project.version
+            released = new Date()
+            vcsTag = project.version
+            gpg {
+                sign = true
+                passphrase = System.getenv().get("SONATYPE_GPG_PASSPHRASE")
             }
+            // Need to enable jcenter in repo
+            //            mavenCentralSync {
+            //                sync = true
+            //                user = System.getenv().get("SONATYPE_USER")
+            //                password = System.getenv().get("SONATYPE_PASSWORD")
+            //                close = '1'
+            //            }
         }
     }
-}
-
-nexusPublishing {
-    repositories {
-        sonatype {
-            username = System.getenv().get("SONATYPE_USER")
-            password = System.getenv().get("SONATYPE_PASSWORD")
-        }
-    }
-}
-
-nexusStaging {
-    username = System.getenv().get("SONATYPE_USER")
-    password = System.getenv().get("SONATYPE_PASSWORD")
-    // Increase number of retries and interval between them to avoid sonatype slowness afecting deployments
-    numberOfRetries = 120
-    delayBetweenRetriesInMillis = 5000
 }
