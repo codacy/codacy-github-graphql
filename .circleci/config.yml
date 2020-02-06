@@ -13,39 +13,54 @@ workflows:
           cmd: ./gradlew build
           requires:
             - codacy/checkout_and_version
+      - codacy/tag_version:
+          name: tag_version
+          context: CodacyAWS
+          requires:
+            - build
           filters:
             branches:
-              ignore:
+              only:
                 - master
       - codacy/shell:
-          name: build-and-publish-2_12
+          name: create_version
+          context: CodacyMavenPublish
+          cmd: |
+            export VERSION="$(cat .version)"
+            curl -fLv -X POST -H 'Content-Type: application/json' -H "Accept: application/json" \
+              -ucodacy-ci:$BINTRAY_API_KEY "https://api.bintray.com/packages/codacy/maven/codacy-github-graphql/versions" \
+              --data '{ "name": "'${VERSION}'", "desc": "Release '${VERSION}'", "vcs_tag": "'${VERSION}'" }'
+          requires:
+            - tag_version
+      - codacy/shell:
+          name: upload-2_12
           context: CodacyMavenPublish
           cmd: |
             export VERSION="$(cat .version)"
             # export SCALA_VERSION="2.12.10"
             ./gradlew build bintrayUpload --stacktrace
           requires:
-            - codacy/checkout_and_version
-          filters:
-            branches:
-              only:
-                - master
+            - create_version
       - codacy/shell:
-          name: build-and-publish-2_11
+          name: upload-2_11
           context: CodacyMavenPublish
           cmd: |
             export VERSION="$(cat .version)"
             export SCALA_VERSION="2.11.12"
             ./gradlew build bintrayUpload --stacktrace
           requires:
-            - codacy/checkout_and_version
-          filters:
-            branches:
-              only:
-                - master
-      - codacy/tag_version:
-          name: tag_version
-          context: CodacyAWS
+            - create_version
+      - codacy/shell:
+          name: publish
+          context: CodacyMavenPublish
+          cmd: |
+            export VERSION="$(cat .version)"
+            curl -fLv -X POST -H 'Content-Type: application/json' -H "Accept: application/json" \
+              -ucodacy-ci:$BINTRAY_API_KEY "https://api.bintray.com/gpg/codacy/maven/codacy-github-graphql/versions/${VERSION}" \
+              --data '{"passphrase": "'${SONATYPE_GPG_PASSPHRASE}'"}'
+            curl -fLv -X POST -H 'Content-Type: application/json' -H "Accept: application/json" \
+              -ucodacy-ci:$BINTRAY_API_KEY "https://api.bintray.com/content/codacy/maven/codacy-github-graphql/${VERSION}/publish" \
+              --data '{"publish_wait_for_secs": -1}'
           requires:
-            - build-and-publish-2_12
-            - build-and-publish-2_11
+            - upload-2_12
+            - upload-2_11

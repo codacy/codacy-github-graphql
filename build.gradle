@@ -113,9 +113,9 @@ bintray {
     user = 'codacy-ci'
     key = System.getenv().get("BINTRAY_API_KEY")
     publications = [publishing.publications.maven.name]
-    dryRun = false //[Default: false] Whether to run this as dry-run, without deploying
-    publish = true //[Default: false] Whether version should be auto published after an upload
-    override = false //[Default: false] Whether to override version artifacts already published
+    dryRun = false
+    publish = false // We explicitly invoke the publish command to be able to upload 2.11 and 2.12 artifacts before
+    override = false
     pkg {
         repo = 'maven'
         name = 'codacy-github-graphql'
@@ -127,17 +127,6 @@ bintray {
             desc = 'Release ' + project.version
             released = new Date()
             vcsTag = project.version
-            gpg {
-                sign = true
-                passphrase = System.getenv().get("SONATYPE_GPG_PASSPHRASE")
-            }
-            // Need to enable jcenter in repo
-            //            mavenCentralSync {
-            //                sync = true
-            //                user = System.getenv().get("SONATYPE_USER")
-            //                password = System.getenv().get("SONATYPE_PASSWORD")
-            //                close = '1'
-            //            }
         }
     }
 }
