@@ -19,6 +19,7 @@ query ListProjectsQuery($queryString: String!, $size: Int = 100, $page: String) 
                 viewerPermission
                 updatedAt
                 createdAt
+                pushedAt
             }
         }
         repositoryCount
