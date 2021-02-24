@@ -20,10 +20,6 @@ workflows:
           context: CodacyAWS
           requires:
             - compile
-          filters:
-            branches:
-              only:
-                - master
       - codacy/tag_version:
           name: tag_version
           context: CodacyAWS
