@@ -1,66 +1,31 @@
 version: 2.1
 
 orbs:
-  codacy: codacy/base@0.3.7
+  codacy: codacy/base@5.2.0
 
 workflows:
   compile_test_deploy:
     jobs:
-      - codacy/checkout_and_version
-      - codacy/shell:
-          name: build
-          context: CodacyAWS
-          cmd: ./gradlew build
+      - codacy/checkout_and_version:
+          write_sbt_version: true
+      - codacy/sbt:
+          name: compile
+          cmd: sbt +compile
+          persist_to_workspace: true
           requires:
             - codacy/checkout_and_version
-      - codacy/tag_version:
-          name: tag_version
+      - codacy/sbt:
+          name: publish_lib
+          cmd: sbt retrieveGPGKeys +publishSigned sonatypeBundleRelease
           context: CodacyAWS
           requires:
-            - build
+            - compile
           filters:
             branches:
               only:
                 - master
-      - codacy/shell:
-          name: create_version
-          context: CodacyMavenPublish
-          cmd: |
-            export VERSION="$(cat .version)"
-            curl -fLv -X POST -H 'Content-Type: application/json' -H "Accept: application/json" \
-              -ucodacy-ci:$BINTRAY_API_KEY "https://api.bintray.com/packages/codacy/maven/codacy-github-graphql/versions" \
-              --data '{ "name": "'${VERSION}'", "desc": "Release '${VERSION}'", "vcs_tag": "'${VERSION}'" }'
+      - codacy/tag_version:
+          name: tag_version
+          context: CodacyAWS
           requires:
-            - tag_version
-      - codacy/shell:
-          name: upload-2_12
-          context: CodacyMavenPublish
-          cmd: |
-            export VERSION="$(cat .version)"
-            # export SCALA_VERSION="2.12.10"
-            ./gradlew build bintrayUpload --stacktrace
-          requires:
-            - create_version
-      - codacy/shell:
-          name: upload-2_11
-          context: CodacyMavenPublish
-          cmd: |
-            export VERSION="$(cat .version)"
-            export SCALA_VERSION="2.11.12"
-            ./gradlew build bintrayUpload --stacktrace
-          requires:
-            - create_version
-      - codacy/shell:
-          name: publish
-          context: CodacyMavenPublish
-          cmd: |
-            export VERSION="$(cat .version)"
-            curl -fLv -X POST -H 'Content-Type: application/json' -H "Accept: application/json" \
-              -ucodacy-ci:$BINTRAY_API_KEY "https://api.bintray.com/gpg/codacy/maven/codacy-github-graphql/versions/${VERSION}" \
-              --data '{"passphrase": "'${SONATYPE_GPG_PASSPHRASE}'"}'
-            curl -fLv -X POST -H 'Content-Type: application/json' -H "Accept: application/json" \
-              -ucodacy-ci:$BINTRAY_API_KEY "https://api.bintray.com/content/codacy/maven/codacy-github-graphql/${VERSION}/publish" \
-              --data '{"publish_wait_for_secs": -1}'
-          requires:
-            - upload-2_12
-            - upload-2_11
+            - publish_lib

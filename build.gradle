@@ -1,42 +1,14 @@
 buildscript {
-    repositories {
-        jcenter()
-    }
     dependencies {
-        def awsSdkVersion = "1.11.714"
-        classpath "com.apollographql.apollo:apollo-gradle-plugin:1.3.0"
-        classpath "com.amazonaws:aws-java-sdk-sts:${awsSdkVersion}"
-        classpath "com.amazonaws:aws-java-sdk-s3:${awsSdkVersion}"
+        classpath "com.apollographql.apollo:apollo-gradle-plugin:${apolloVersion}"
     }
 }
 
 plugins {
     id 'java-library'
-    id 'scala'
-    id 'maven-publish'
-    id 'com.jfrog.bintray' version "1.8.4"
 }
 
 apply plugin: 'com.apollographql.apollo'
-
-def scalaVersionParts = System.getenv().getOrDefault('SCALA_VERSION', '2.12.10').tokenize(".")
-def scalaMajorMinorVersion = (String) "${scalaVersionParts[0]}.${scalaVersionParts[1]}"
-def scalaVersion = (String) "${scalaMajorMinorVersion}.${scalaVersionParts[2]}"
-def jetbrainsVersion = "18.0.0"
-
-group = 'com.codacy'
-version = System.getenv().getOrDefault('VERSION', '0.1.0-SNAPSHOT')
-
-repositories {
-    jcenter()
-}
-
-dependencies {
-    compileOnly "org.jetbrains:annotations:${jetbrainsVersion}"
-    testCompileOnly "org.jetbrains:annotations:${jetbrainsVersion}"
-    implementation "org.scala-lang:scala-library:${scalaVersion}"
-    implementation "com.apollographql.apollo:apollo-runtime:1.3.0"
-}
 
 apollo {
     customTypeMapping = [
@@ -55,78 +27,5 @@ apollo {
         sourceFolder.set("com/github/api/v4")
         rootPackageName.set("com.github.api.v4")
         exclude = ["**/schema.graphql"]
-    }
-}
-
-task sourcesJar(type: Jar) {
-    from sourceSets.main.allJava
-    archiveClassifier.set('sources')
-}
-
-task javadocJar(type: Jar) {
-    from javadoc
-    archiveClassifier.set('javadoc')
-}
-
-publishing {
-    publications {
-        maven(MavenPublication) {
-            groupId = project.group
-            artifactId = "${project.name}_${scalaMajorMinorVersion}"
-            from components.java
-            artifact sourcesJar
-            artifact javadocJar
-            pom {
-                name = 'Codacy GitHub v4 GraphQL'
-                description = 'Generated models and queries for GitHub v4 API in GraphQL'
-                url = 'https://github.com/codacy/codacy-github-graphql'
-                licenses {
-                    license {
-                        name = 'The Apache License, Version 2.0'
-                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    }
-                }
-                developers {
-                    developer {
-                        id = 'codacy'
-                        name = 'Codacy Team'
-                        email = 'code@codacy.com'
-                    }
-                }
-                scm {
-                    connection = 'scm:git:git://github.com/codacy/codacy-github-graphql.git'
-                    developerConnection = 'scm:git:ssh://github.com:codacy/codacy-github-graphql.git'
-                    url = 'https://github.com/codacy/codacy-github-graphql'
-                }
-            }
-        }
-    }
-}
-
-javadoc {
-    if (JavaVersion.current().isJava9Compatible()) {
-        options.addBooleanOption('html5', true)
-    }
-}
-
-bintray {
-    user = 'codacy-ci'
-    key = System.getenv().get("BINTRAY_API_KEY")
-    publications = [publishing.publications.maven.name]
-    dryRun = false
-    publish = false // We explicitly invoke the publish command to be able to upload 2.11 and 2.12 artifacts before
-    override = false
-    pkg {
-        repo = 'maven'
-        name = 'codacy-github-graphql'
-        userOrg = 'codacy'
-        licenses = ['Apache-2.0']
-        vcsUrl = 'https://github.com/codacy/codacy-github-graphql.git'
-        version {
-            name = project.version
-            desc = 'Release ' + project.version
-            released = new Date()
-            vcsTag = project.version
-        }
     }
 }
