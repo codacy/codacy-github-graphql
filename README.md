@@ -6,16 +6,10 @@
 
 Library with Apollo compiled queries and models for GitHub API V4
 
-## Use
-
-This package is published under bintray, you can check it out in https://bintray.com/codacy/maven/codacy-github-graphql.
-
-You need to add the resolver `https://dl.bintray.com/codacy/maven` to your project to use this library.
-
 ## Build
 
 ```sh
-./gradlew build
+sbt compile
 ```
 
 ## Usage
