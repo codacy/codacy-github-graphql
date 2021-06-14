@@ -16,10 +16,8 @@ query ListProjectsQuery($queryString: String!, $size: Int = 100, $page: String) 
                 url
                 sshUrl
                 isPrivate
-                description
                 viewerPermission
                 updatedAt
-                createdAt
             }
         }
         repositoryCount
