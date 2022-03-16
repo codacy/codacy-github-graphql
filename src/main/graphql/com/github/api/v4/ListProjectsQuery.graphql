@@ -18,6 +18,7 @@ query ListProjectsQuery($queryString: String!, $size: Int = 100, $page: String) 
                 isPrivate
                 viewerPermission
                 updatedAt
+                pushedAt
             }
         }
         repositoryCount
