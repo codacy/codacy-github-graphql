@@ -3,11 +3,6 @@ query ListProjectsThinQuery(
   $size: Int = 100
   $page: String
 ) {
-  rateLimit {
-    cost
-    remaining
-    resetAt
-  }
   organization(login: $organizationName) {
     repositories(
       first: $size
@@ -26,7 +21,6 @@ query ListProjectsThinQuery(
       }
       pageInfo {
         endCursor
-        startCursor
       }
     }
   }
