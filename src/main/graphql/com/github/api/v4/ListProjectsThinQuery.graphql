@@ -1,25 +1,33 @@
-query ListProjectsThinQuery($organizationName: String!, $size: Int = 100, $page: String) {
-    rateLimit {
-        cost
-        remaining
-        resetAt
-    }
-    organization(login: $organizationName) {
-        repositories(first: $size, after: $page) {
-            nodes {
-                ... on Repository {
-                    databaseId
-                    url
-                    sshUrl
-                    pushedAt
-                    viewerPermission
-                    isPrivate
-                }
-            }
-            pageInfo {
-                endCursor
-                startCursor
-            }
+query ListProjectsThinQuery(
+  $organizationName: String!
+  $size: Int = 100
+  $page: String
+) {
+  rateLimit {
+    cost
+    remaining
+    resetAt
+  }
+  organization(login: $organizationName) {
+    repositories(
+      first: $size
+      after: $page
+      orderBy: { field: PUSHED_AT, direction: DESC }
+    ) {
+      nodes {
+        ... on Repository {
+          databaseId
+          url
+          sshUrl
+          pushedAt
+          viewerPermission
+          isPrivate
         }
+      }
+      pageInfo {
+        endCursor
+        startCursor
+      }
     }
+  }
 }
