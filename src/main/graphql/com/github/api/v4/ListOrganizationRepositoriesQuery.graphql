@@ -1,4 +1,4 @@
-query ListProjectsThinQuery(
+query ListOrganizationRepositoriesQuery(
   $organizationName: String!
   $size: Int = 100
   $page: String
@@ -12,11 +12,14 @@ query ListProjectsThinQuery(
       nodes {
         ... on Repository {
           databaseId
+          name
+          nameWithOwner
           url
           sshUrl
-          pushedAt
-          viewerPermission
           isPrivate
+          viewerPermission
+          updatedAt
+          pushedAt
         }
       }
       pageInfo {

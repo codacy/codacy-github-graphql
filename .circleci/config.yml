@@ -14,9 +14,32 @@ workflows:
           persist_to_workspace: true
           requires:
             - codacy/checkout_and_version
+      - publish_dev_approval:
+          type: approval
+          requires:
+            - compile
+          filters:
+            branches:
+              ignore:
+                - master
+      - codacy/sbt:
+          name: publish_dev
+          context: CodacyAWS
+          aws_profile: maven
+          steps:
+            - run:
+                name: Publish to internal S3
+                command: |
+                  echo 'privateMvnPublish' > publishing.sbt
+                  sbt +publish
+          requires:
+            - publish_dev_approval
+
       - codacy/sbt:
           name: publish_lib
-          cmd: sbt retrieveGPGKeys +publishSigned sonatypeBundleRelease
+          cmd: |
+            echo 'publicMvnPublish' > sonatype.sbt
+            sbt retrieveGPGKeys +publishSigned sonatypeBundleRelease
           context: CodacyAWS
           requires:
             - compile

@@ -1,0 +1,31 @@
+query ListUserRepositoriesQuery(
+  $userName: String!
+  $size: Int = 100
+  $page: String
+) {
+  user(login: $userName) {
+    repositories(
+      first: $size
+      after: $page
+      affiliations: [ OWNER ]
+      orderBy: { field: PUSHED_AT, direction: DESC }
+    ) {
+      nodes {
+        ... on Repository {
+          databaseId
+          name
+          nameWithOwner
+          url
+          sshUrl
+          isPrivate
+          viewerPermission
+          updatedAt
+          pushedAt
+        }
+      }
+      pageInfo {
+        endCursor
+      }
+    }
+  }
+}

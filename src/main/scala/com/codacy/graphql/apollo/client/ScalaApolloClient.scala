@@ -14,13 +14,15 @@ import okhttp3.OkHttpClient
 import scala.concurrent.{Future, Promise}
 
 object ScalaApolloClient {
+
   def apply(url: URL, okHttpClient: OkHttpClient = new OkHttpClient.Builder().build()): ScalaApolloClient =
     new ScalaApolloClient(client(url, okHttpClient))
 
   def apply(apolloClient: apollo.ApolloClient): ScalaApolloClient = new ScalaApolloClient(apolloClient)
 
   private def client(url: URL, okHttpClient: OkHttpClient) = {
-    apollo.ApolloClient.builder()
+    apollo.ApolloClient
+      .builder()
       .serverUrl(url.toString)
       .okHttpClient(okHttpClient)
       .addCustomTypeAdapter(CustomType.DATETIME, new DateTimeAdapter())

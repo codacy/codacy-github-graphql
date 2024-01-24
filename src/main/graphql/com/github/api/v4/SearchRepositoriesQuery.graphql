@@ -1,16 +1,8 @@
-query ListProjectsQuery($queryString: String!, $size: Int = 100, $page: String) {
-    rateLimit {
-        cost
-        remaining
-        resetAt
-    }
+query SearchRepositoriesQuery($queryString: String!, $size: Int = 100, $page: String) {
     search(query: $queryString, type: REPOSITORY, first: $size, after: $page) {
         nodes {
             ... on Repository {
                 databaseId
-                owner {
-                    login
-                }
                 name
                 nameWithOwner
                 url
@@ -21,10 +13,8 @@ query ListProjectsQuery($queryString: String!, $size: Int = 100, $page: String) 
                 pushedAt
             }
         }
-        repositoryCount
         pageInfo {
             endCursor
-            startCursor
         }
     }
 }
