@@ -22,10 +22,6 @@ libraryDependencies ++= Seq(
   "com.apollographql.apollo" % "apollo-runtime" % apolloVersion
 )
 
-val runGradleSourceGenerator = Def.task {
-  Seq("./gradlew", "generateMainGithubApolloSources").!
-}
-
 Compile / sourceGenerators += Def.task {
   val buildDir = baseDirectory.value / "build"
   IO.delete(buildDir)
