@@ -1,3 +1,4 @@
+import java.nio.file.Files
 import sys.process._
 
 val scala212 = "2.12.12"
@@ -22,15 +23,18 @@ libraryDependencies ++= Seq(
 )
 
 val runGradleSourceGenerator = Def.task {
-  IO.delete(baseDirectory.value / "build")
   Seq("./gradlew", "generateMainGithubApolloSources").!
 }
 
-Compile / compile := (Compile / compile)
-  .dependsOn(runGradleSourceGenerator)
-  .value
-
-Compile / unmanagedSourceDirectories += baseDirectory.value / "build" / "generated" / "source"
+Compile / sourceGenerators += Def.task {
+  val buildDir = baseDirectory.value / "build"
+  IO.delete(buildDir)
+  Seq("./gradlew", "generateMainGithubApolloSources").!
+  def listFiles(file: File): Seq[File] =
+    if (Files.isDirectory(file.toPath)) IO.listFiles(file).flatMap(listFiles)
+    else Seq(file)
+  listFiles(buildDir / "generated" / "source")
+}.taskValue
 
 homepage := Some(url("https://github.com/codacy/codacy-github-graphql"))
 
