@@ -14,8 +14,8 @@ query SearchProjectsQuery($queryString: String!, $size: Int = 100, $page: String
             }
         }
         pageInfo {
-            endCursor
             startCursor
+            endCursor
         }
     }
 }

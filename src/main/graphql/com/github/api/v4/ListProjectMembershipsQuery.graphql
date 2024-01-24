@@ -13,8 +13,8 @@ query ListProjectMembershipsQuery($ownerName: String!, $repositoryName: String!,
             }
             totalCount
             pageInfo {
-                endCursor
                 startCursor
+                endCursor
             }
         }
     }
