@@ -1,0 +1,21 @@
+query SearchProjectsQuery($queryString: String!, $size: Int = 100, $page: String) {
+    search(query: $queryString, type: REPOSITORY, first: $size, after: $page) {
+        nodes {
+            ... on Repository {
+                databaseId
+                name
+                nameWithOwner
+                url
+                sshUrl
+                isPrivate
+                viewerPermission
+                updatedAt
+                pushedAt
+            }
+        }
+        pageInfo {
+            endCursor
+            startCursor
+        }
+    }
+}

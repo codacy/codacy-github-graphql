@@ -1,30 +1,30 @@
-query ListProjectsQuery($queryString: String!, $size: Int = 100, $page: String) {
-    rateLimit {
-        cost
-        remaining
-        resetAt
-    }
-    search(query: $queryString, type: REPOSITORY, first: $size, after: $page) {
-        nodes {
-            ... on Repository {
-                databaseId
-                owner {
-                    login
-                }
-                name
-                nameWithOwner
-                url
-                sshUrl
-                isPrivate
-                viewerPermission
-                updatedAt
-                pushedAt
-            }
+query ListProjectsQuery(
+  $organizationName: String!
+  $size: Int = 100
+  $page: String
+) {
+  organization(login: $organizationName) {
+    repositories(
+      first: $size
+      after: $page
+      orderBy: { field: PUSHED_AT, direction: DESC }
+    ) {
+      nodes {
+        ... on Repository {
+          databaseId
+          name
+          nameWithOwner
+          url
+          sshUrl
+          isPrivate
+          viewerPermission
+          updatedAt
+          pushedAt
         }
-        repositoryCount
-        pageInfo {
-            endCursor
-            startCursor
-        }
+      }
+      pageInfo {
+        endCursor
+      }
     }
+  }
 }
