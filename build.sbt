@@ -22,6 +22,7 @@ libraryDependencies ++= Seq(
 )
 
 val runGradleSourceGenerator = Def.task {
+  IO.delete(baseDirectory.value / "build")
   Seq("./gradlew", "generateMainGithubApolloSources").!
 }
 

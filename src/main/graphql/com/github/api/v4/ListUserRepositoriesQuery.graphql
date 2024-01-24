@@ -1,9 +1,8 @@
-query ListProjectsQuery(
-  $organizationName: String!
+query ListUserRepositoriesQuery(
   $size: Int = 100
   $page: String
 ) {
-  organization(login: $organizationName) {
+  user {
     repositories(
       first: $size
       after: $page
