@@ -1,8 +1,9 @@
 query ListUserRepositoriesQuery(
+  $userName: String!
   $size: Int = 100
   $page: String
 ) {
-  user {
+  user(login: $userName) {
     repositories(
       first: $size
       after: $page
