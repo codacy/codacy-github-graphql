@@ -31,8 +31,6 @@ Compile / compile := (Compile / compile)
 
 Compile / unmanagedSourceDirectories += baseDirectory.value / "build" / "generated" / "source"
 
-publicMvnPublish
-
 homepage := Some(url("https://github.com/codacy/codacy-github-graphql"))
 
 // HACK: This setting is not picked up properly from the plugin
