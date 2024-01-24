@@ -1,4 +1,4 @@
-query SearchProjectsQuery($queryString: String!, $size: Int = 100, $page: String) {
+query SearchRepositoriesQuery($queryString: String!, $size: Int = 100, $page: String) {
     search(query: $queryString, type: REPOSITORY, first: $size, after: $page) {
         nodes {
             ... on Repository {
