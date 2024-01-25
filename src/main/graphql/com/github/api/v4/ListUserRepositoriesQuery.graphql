@@ -8,7 +8,6 @@ query ListUserRepositoriesQuery(
       first: $size
       after: $page
       affiliations: [ OWNER ]
-      orderBy: { field: PUSHED_AT, direction: DESC }
     ) {
       nodes {
         ... on Repository {
