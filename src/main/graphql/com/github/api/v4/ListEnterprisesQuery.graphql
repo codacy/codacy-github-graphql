@@ -1,0 +1,18 @@
+query ListEnterprisesQuery($size: Int = 100, $page: String) {
+  viewer {
+    enterprises(first: $size, after: $page) {
+      nodes {
+        databaseId
+        slug
+        name
+        viewerIsAdmin
+        url
+        avatarUrl
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}
