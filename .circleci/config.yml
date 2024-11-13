@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  codacy: codacy/base@10.1.0
+  codacy: codacy/base@11.0.0
 
 workflows:
   compile_test_deploy:
