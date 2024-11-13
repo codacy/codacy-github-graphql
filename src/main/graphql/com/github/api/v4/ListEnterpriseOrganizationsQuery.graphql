@@ -1,0 +1,19 @@
+query ListEnterpriseOrganizationsQuery($slug: String!, $size: Int = 100, $page: String) {
+  enterprise(slug: $slug) {
+    organizations(first: $size, after: $page) {
+      nodes {
+        databaseId
+        login
+        name
+        avatarUrl
+        url
+        viewerIsAMember
+        viewerCanAdminister
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}

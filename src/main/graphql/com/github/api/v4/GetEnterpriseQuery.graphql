@@ -1,0 +1,10 @@
+query GetEnterpriseQuery($slug: String!) {
+  enterprise(slug: $slug) {
+    databaseId
+    slug
+    name
+    viewerIsAdmin
+    url
+    avatarUrl
+  }
+}
