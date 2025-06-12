@@ -39,7 +39,7 @@ workflows:
           name: publish_lib
           cmd: |
             echo 'publicMvnPublish' > sonatype.sbt
-            sbt retrieveGPGKeys +publishSigned sonatypeBundleRelease
+            sbt retrieveGPGKeys +publishSigned sonatypeCentralRelease
           context: CodacyAWS
           requires:
             - compile
