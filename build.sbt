@@ -1,7 +1,7 @@
 import java.nio.file.Files
 import sys.process._
 
-val scala212 = "2.12.12"
+val scala212 = "2.12.20"
 
 ThisBuild / scalaVersion := scala212
 ThisBuild / crossScalaVersions := Seq(scala212)
