@@ -41,6 +41,7 @@ workflows:
             echo 'publicMvnPublish' > sonatype.sbt
             sbt retrieveGPGKeys +publishSigned sonatypeCentralRelease
           context: CodacyAWS
+          no_output_timeout: "30m"
           requires:
             - compile
           filters:
