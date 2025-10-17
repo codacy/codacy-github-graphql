@@ -1,0 +1,11 @@
+query OrganizationRepositoriesCountQuery(
+  $organizationName: String!
+) {
+  organization(login: $organizationName) {
+    repositories {
+      totalCount
+    }
+  }
+}
+
+
