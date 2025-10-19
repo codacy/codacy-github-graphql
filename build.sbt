@@ -22,6 +22,10 @@ libraryDependencies ++= Seq(
   "com.apollographql.apollo" % "apollo-runtime" % apolloVersion
 )
 
+// Ensure Java 8 compatibility
+javacOptions ++= Seq("-source", "8", "-target", "8")
+scalacOptions ++= Seq("-target:jvm-1.8")
+
 Compile / sourceGenerators += Def.task {
   val buildDir = baseDirectory.value / "build"
   IO.delete(buildDir)
