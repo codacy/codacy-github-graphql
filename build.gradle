@@ -10,6 +10,14 @@ plugins {
 
 apply plugin: 'com.apollographql.apollo'
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17)) // Use JDK 17 to build
+    }
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
 apollo {
     customTypeMapping = [
             "DateTime"    : "java.time.Instant",
@@ -29,3 +37,4 @@ apollo {
         exclude = ["**/schema.graphql"]
     }
 }
+
