@@ -23,7 +23,7 @@ libraryDependencies ++= Seq(
 )
 
 // Ensure Java 8 compatibility
-javacOptions ++= Seq("-source", "8", "-target", "8")
+javacOptions ++= Seq("--release", "8")
 scalacOptions ++= Seq("-target:jvm-1.8")
 
 Compile / sourceGenerators += Def.task {

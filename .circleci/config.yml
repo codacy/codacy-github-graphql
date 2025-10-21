@@ -11,6 +11,7 @@ workflows:
       - codacy/sbt:
           name: compile
           cmd: sbt +compile
+          openjdk_version: "17"
           persist_to_workspace: true
           requires:
             - codacy/checkout_and_version
@@ -26,6 +27,7 @@ workflows:
           name: publish_dev
           context: CodacyAWS
           aws_profile: maven
+          openjdk_version: "17"
           steps:
             - run:
                 name: Publish to internal S3
@@ -40,6 +42,7 @@ workflows:
           cmd: |
             echo 'publicMvnPublish' > sonatype.sbt
             sbt retrieveGPGKeys +publishSigned sonatypeCentralRelease
+          openjdk_version: "17"
           context: CodacyAWS
           no_output_timeout: "30m"
           requires:
