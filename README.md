@@ -25,8 +25,8 @@ import java.net.URL
 import com.github.api.v4.ListProjectMembershipsQuery
 import com.codacy.graphql.apollo.client.ScalaApolloClient
 
-import scala.collection.JavaConverters._
-import scala.compat.java8.OptionConverters._
+import scala.jdk.CollectionConverters._
+import scala.jdk.OptionConverters._
 import scala.concurrent.duration._
 
 val client = ScalaApolloClient(new URL("https://api.example.com/graphql"))
@@ -42,11 +42,11 @@ val result = client.execute(queryMemberships)
 
 val data = result.map { res =>
     for {
-      data <- res.data().asScala
-      repositoryEntries <- data.repositoryEntries().asScala
-      collaborators <- repositoryEntries.collaborators().asScala
-      nodes <- collaborators.nodes().asScala.map(_.asScala)
-    } yield nodes.map(c => (c.databaseId().asScala, c.login(), Option(c.email()).filter(_.nonEmpty)))
+      data <- res.data().toScala
+      repositoryEntries <- data.repositoryEntries().toScala
+      collaborators <- repositoryEntries.collaborators().toScala
+      nodes <- collaborators.nodes().toScala.map(_.asScala)
+    } yield nodes.map(c => (c.databaseId().toScala, c.login(), Option(c.email()).filter(_.nonEmpty)))
 }
 ```
 
