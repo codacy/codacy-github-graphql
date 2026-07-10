@@ -2,7 +2,7 @@ query OrganizationRepositoriesCountQuery(
   $organizationName: String!
 ) {
   organization(login: $organizationName) {
-    repositories {
+    repositories(isArchived: false) {
       totalCount
     }
   }
