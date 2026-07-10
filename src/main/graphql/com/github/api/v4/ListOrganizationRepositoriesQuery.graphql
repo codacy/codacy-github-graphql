@@ -8,6 +8,7 @@ query ListOrganizationRepositoriesQuery(
       first: $size
       after: $page
       orderBy: { field: PUSHED_AT, direction: DESC }
+      isArchived: false
     ) {
       nodes {
         ... on Repository {
