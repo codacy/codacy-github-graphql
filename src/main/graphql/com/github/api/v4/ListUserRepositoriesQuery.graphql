@@ -9,6 +9,7 @@ query ListUserRepositoriesQuery(
       after: $page
       affiliations: [ OWNER ]
       orderBy: { field: PUSHED_AT, direction: DESC }
+      isArchived: false
     ) {
       nodes {
         ... on Repository {
