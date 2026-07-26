@@ -1,10 +1,10 @@
 import java.nio.file.Files
 import sys.process._
 
-val scala212 = "2.12.20"
+val scala213 = "2.13.18"
 
-ThisBuild / scalaVersion := scala212
-ThisBuild / crossScalaVersions := Seq(scala212)
+ThisBuild / scalaVersion := scala213
+ThisBuild / crossScalaVersions := Seq(scala213)
 
 name := "codacy-github-graphql"
 
@@ -24,7 +24,7 @@ libraryDependencies ++= Seq(
 
 // Ensure Java 8 compatibility
 javacOptions ++= Seq("--release", "8")
-scalacOptions ++= Seq("-target:jvm-1.8")
+scalacOptions ++= Seq("-release", "8")
 
 Compile / sourceGenerators += Def.task {
   val buildDir = baseDirectory.value / "build"
