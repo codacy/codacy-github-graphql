@@ -2,9 +2,10 @@ import java.nio.file.Files
 import sys.process._
 
 val scala212 = "2.12.20"
+val scala213 = "2.13.16"
 
 ThisBuild / scalaVersion := scala212
-ThisBuild / crossScalaVersions := Seq(scala212)
+ThisBuild / crossScalaVersions := Seq(scala212, scala213)
 
 name := "codacy-github-graphql"
 
