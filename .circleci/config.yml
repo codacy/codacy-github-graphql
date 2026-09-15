@@ -31,20 +31,15 @@ workflows:
           steps:
             - run:
                 name: Publish to internal S3
-                command: |
-                  echo 'privateMvnPublish' > publishing.sbt
-                  sbt +publish
+                command: sbt +publish
           requires:
             - publish_dev_approval
 
       - codacy/sbt:
           name: publish_lib
-          cmd: |
-            echo 'publicMvnPublish' > sonatype.sbt
-            sbt retrieveGPGKeys +publishSigned sonatypeCentralRelease
+          cmd: sbt +publish
           openjdk_version: "17"
           context: CodacyAWS
-          no_output_timeout: "30m"
           requires:
             - compile
           filters:
