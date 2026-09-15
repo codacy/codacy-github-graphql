@@ -49,3 +49,5 @@ scmInfo := Some(
     "scm:git:git@github.com:codacy/codacy-github-graphql.git"
   )
 )
+
+privateMvnPublish
