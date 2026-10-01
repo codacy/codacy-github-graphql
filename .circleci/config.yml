@@ -40,6 +40,7 @@ workflows:
           cmd: sbt +publish
           openjdk_version: "17"
           context: CodacyAWS
+          aws_profile: maven
           requires:
             - compile
           filters:
